@@ -29,5 +29,4 @@ jobs:
           channelId: live
           projectId: bambux-social
         env:
-          FIREBASE_CLI_PREVIEWS: hostingchannels  env:
           FIREBASE_CLI_PREVIEWS: hostingchannels
