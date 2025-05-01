@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ - Bambux</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <img src="assets/images/logo.png" alt="Bambux Logo">
+                <h1>Bambux</h1>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Trang chủ</a></li>
+                    <li><a href="profile.html" class="active"><i class="fas fa-user"></i> Hồ sơ</a></li>
+                    <li class="user-info">
+                        <img src="assets/images/default-avatar.png" alt="Avatar" class="avatar" id="userAvatar">
+                        <span id="userName">Người dùng</span>
+                    </li>
+                    <li><button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="profile-header">
+            <div class="profile-image">
+                <img src="assets/images/default-avatar.png" alt="Profile" id="profileAvatar">
+                <button id="changeAvatarBtn"><i class="fas fa-camera"></i></button>
+                <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+            </div>
+            <div class="profile-info">
+                <h2 id="profileName">Tên người dùng</h2>
+                <p id="profileEmail">email@example.com</p>
+                <p id="profileJoined">Tham gia: ...</p>
+            </div>
+        </div>
+
+        <div class="profile-edit">
+            <h3>Thông tin cá nhân</h3>
+            <form id="updateProfileForm">
+                <div class="form-group">
+                    <label for="updateName">Tên hiển thị</label>
+                    <input type="text" id="updateName">
+                </div>
+                <div class="form-group">
+                    <label for="updateBio">Giới thiệu bản thân</label>
+                    <textarea id="updateBio" rows="3"></textarea>
+                </div>
+                <button type="submit" class="primary-btn">Cập nhật thông tin</button>
+            </form>
+        </div>
+
+        <div class="user-posts">
+            <h3>Bài đăng của bạn</h3>
+            <div id="userPostsContainer">
+                <!-- Bài đăng của người dùng sẽ được hiển thị ở đây từ JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Bambux</p>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script src="assets/js/firebase-config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/posts.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Kiểm tra đăng nhập
+            firebase.auth().onAuthStateChanged(function(user) {
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Hiển thị thông tin người dùng
+                displayUserProfile(user);
+                
+                // Hiển thị bài đăng của người dùng
+                loadUserPosts(user.uid);
+            });
+            
+            // Thay đổi ảnh đại diện
+            document.getElementById('changeAvatarBtn').addEventListener('click', function() {
+                document.getElementById('avatarInput').click();
+            });
+            
+            document.getElementById('avatarInput').addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    uploadAvatar(e.target.files[0]);
+                }
+            });
+            
+            // Cập nhật thông tin hồ sơ
+            document.getElementById('updateProfileForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('updateName').value;
+                const bio = document.getElementById('updateBio').value;
+                
+                updateUserProfile(name, bio);
+            });
+            
+            // Nút đăng xuất
+            document.getElementById('logoutBtn').addEventListener('click', logoutUser);
+        });
+        
+        // Hàm hiển thị thông tin người dùng
+        function displayUserProfile(user) {
+            const db = firebase.firestore();
+            
+            db.collection('users').doc(user.uid).get().then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    
+                    document.getElementById('profileName').textContent = userData.displayName || user.email;
+                    document.getElementById('profileEmail').textContent = user.email;
+                    document.getElementById('profileJoined').textContent = 'Tham gia: ' + new Date(user.metadata.creationTime).toLocaleDateString();
+                    document.getElementById('userName').textContent = userData.displayName || user.email;
+                    
+                    document.getElementById('updateName').value = userData.displayName || '';
+                    document.getElementById('updateBio').value = userData.bio || '';
+                    
+                    if (userData.photoURL) {
+                        document.getElementById('profileAvatar').src = userData.photoURL;
+                        document.getElementById('userAvatar').src = userData.photoURL;
+                    }
+                }
+            });
+        }
+        
+        // Hàm tải bài đăng của người dùng
+        function loadUserPosts(userId) {
+            const postsContainer = document.getElementById('userPostsContainer');
+            postsContainer.innerHTML = '<p class="loading">Đang tải bài đăng...</p>';
+            
+            getUserPosts(userId, postsContainer);
+        }
+        
+        // Hàm tải lên ảnh đại diện
+        function uploadAvatar(file) {
+            const user = firebase.auth().currentUser;
+            if (!user) return;
+            
+            const storageRef = firebase.storage().ref();
+            const avatarRef = storageRef.child(`avatars/${user.uid}/${file.name}`);
+            
+            avatarRef.put(file).then(() => {
+                return avatarRef.getDownloadURL();
+            }).then((url) => {
+                return updateUserData({
+                    photoURL: url
+                });
+            }).then(() => {
+                document.getElementById('profileAvatar').src = url;
+                document.getElementById('userAvatar').src = url;
+                alert('Đã cập nhật ảnh đại diện!');
+            }).catch((error) => {
+                console.error('Error uploading avatar: ', error);
+                alert('Có lỗi khi tải lên ảnh đại diện. Vui lòng thử lại.');
+            });
+        }
+        
+        // Hàm cập nhật thông tin người dùng
+        function updateUserProfile(name, bio) {
+            updateUserData({
+                displayName: name,
+                bio: bio
+            }).then(() => {
+                document.getElementById('profileName').textContent = name;
+                document.getElementById('userName').textContent = name;
+                alert('Đã cập nhật thông tin hồ sơ!');
+            }).catch((error) => {
+                console.error('Error updating profile: ', error);
+                alert('Có lỗi khi cập nhật thông tin. Vui lòng thử lại.');
+            });
+        }
+    </script>
+</body>
+</html> }
+    </script>
+</body>
+</html>

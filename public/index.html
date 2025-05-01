@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bambux - Kết nối mọi người</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <img src="assets/images/logo.png" alt="Bambux Logo">
+                <h1>Bambux</h1>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html" class="active"><i class="fas fa-home"></i> Trang chủ</a></li>
+                    <li><a href="profile.html"><i class="fas fa-user"></i> Hồ sơ</a></li>
+                    <li class="user-info">
+                        <img src="assets/images/default-avatar.png" alt="Avatar" class="avatar" id="userAvatar">
+                        <span id="userName">Người dùng</span>
+                    </li>
+                    <li><button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="create-post">
+            <textarea id="postContent" placeholder="Bạn đang nghĩ gì?"></textarea>
+            <div class="post-actions">
+                <button id="addPhotoBtn"><i class="fas fa-image"></i> Thêm ảnh</button>
+                <input type="file" id="postImage" accept="image/*" style="display: none;">
+                <button id="createPostBtn" class="primary-btn">Đăng bài</button>
+            </div>
+        </div>
+
+        <div class="posts" id="postsContainer">
+            <!-- Bài đăng sẽ được hiển thị ở đây từ JavaScript -->
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Bambux</p>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script src="assets/js/firebase-config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/posts.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
